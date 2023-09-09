@@ -12,6 +12,9 @@ const { Storage } = require('@google-cloud/storage');
 const archiver = require('archiver');
 const fs = require('fs');
 const path = require('path');
+const schoolsModel = require('../Models/schoolModel');
+const invoiceModel = require('../Models/invoiceModel');
+const userModel = require('../Models/userModel');
 
 exports.createUser = async (req, res) => {
   const { username, password, Schoolname, schoolcode, email, validationoptions } = req.body;
@@ -453,5 +456,87 @@ exports.getAllUsers = async(req, res) => {
       status: 'failed',
       message: 'Something went wrong'
     })
+  }
+};
+
+exports.deleteSchool = async (req, res, next) => {
+  try {
+    const schoolId = req.params.id; // Assuming the school ID is in the URL
+   
+    // Check if the school with the given ID exists in your database
+    const school = await schoolsModel.findByPk(schoolId);
+    
+    // If the school does not exist, return a 404 Not Found response
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+
+    // Delete the school
+    await school.destroy();
+
+    // If the deletion is successful, send a success response
+    return res.status(204).json({
+      status: 'Success',
+      message: 'School deleted successfully'
+    }); // 204 means No Content (successful deletion)
+  } catch (error) {
+    // Handle any errors that may occur during the deletion process
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+exports.deleteInvoice = async (req, res, next) => {
+  try {
+    const Id = req.params.id; // Assuming the school ID is in the URL
+    
+    // Check if the school with the given ID exists in your database
+    const invoice = await invoiceModel.findByPk(Id);
+    
+    // If the school does not exist, return a 404 Not Found response
+    if (!invoice) {
+      return res.status(404).json({ message: 'invoice not found' });
+    }
+
+    // Delete the school
+    await invoice.destroy();
+
+    // If the deletion is successful, send a success response
+    return res.status(204).json({
+      status: 'Success',
+      message: 'invoice deleted successfully'
+    }); // 204 means No Content (successful deletion)
+  } catch (error) {
+    // Handle any errors that may occur during the deletion process
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const Id = req.params.id; // Assuming the school ID is in the URL
+    
+    // Check if the school with the given ID exists in your database
+    const user = await userModel.findByPk(Id);
+    
+    // If the school does not exist, return a 404 Not Found response
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete the school
+    await user.destroy();
+
+    // If the deletion is successful, send a success response
+    return res.status(204).json({
+      status: 'Success',
+      message: 'User deleted successfully'
+    }); // 204 means No Content (successful deletion)
+  } catch (error) {
+    // Handle any errors that may occur during the deletion process
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 };

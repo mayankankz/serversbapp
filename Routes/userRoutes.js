@@ -22,5 +22,7 @@ userRouter.get('/downloaddata',user.downloadStudentsData )
 userRouter.patch('/updatestudentdata/:id',user.updateStudentData)
 userRouter.get('/getallusers',user.getAllUsers )
 userRouter.get('/downloadphotos' , user.downloadphotos)
-userRouter.post('/deleteschool' , user.downloadphotos)
+userRouter.delete('/deleteschool/:id', user.deleteSchool);
+userRouter.delete('/deleteinvoice/:id', user.deleteInvoice);
+userRouter.delete('/deleteuser/:id', user.deleteUser);
 module.exports =  userRouter;

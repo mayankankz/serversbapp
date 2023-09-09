@@ -6,6 +6,9 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const Invoice = require('../Models/invoiceModel');
 const db = require('../Utill/database');
+const invoiceModel = require('../Models/invoiceModel');
+const Schools = require('../Models/schoolModel')
+
 
 const storage = new Storage({
   projectId: 'silken-mile-383309',
@@ -286,7 +289,7 @@ exports.getSignedUrl = async (req, res, next) => {
 
 
 exports.saveInvoice = async (req, res) => {
-  const { items, taxes, name, address, gst, mobile, issueDate, dueDate, invoiceNumber, discount, gstBill, email, status,total,companyname } = req.body;
+  const { items, taxes, name, address, gst, mobile, issueDate, dueDate, invoiceNumber, discount, gstBill, email, status, total, companyname } = req.body;
 
   try {
     const newInvoice = {
@@ -315,36 +318,77 @@ exports.saveInvoice = async (req, res) => {
 }
 
 
-exports.getAllInvoice = async(req,res) => {
+exports.getAllInvoice = async (req, res) => {
 
   try {
     const invoices = await Invoice.findAll();
-    res.status(201).json({status: 'success', message: 'Invoice fetched successfully.', data : invoices });
+    res.status(201).json({ status: 'success', message: 'Invoice fetched successfully.', data: invoices });
   } catch (error) {
-    res.status(500).json({status: 'failed' , message: 'Invoice not found.'});
+    res.status(500).json({ status: 'failed', message: 'Invoice not found.' });
   }
 }
 
-exports.dashboardData = async(req,res) => {
+exports.dashboardData = async (req, res) => {
+
+  const currentDate = new Date();
+  const sevenMonthsAgo = new Date(currentDate);
+  sevenMonthsAgo.setMonth(currentDate.getMonth() - 6); // Adjusted to 6 months
   try {
-    
     const schoolsTotalStudent = await db.executeSelectQuery(`SELECT sc.schoolname as name, COUNT(s.id) AS value
     FROM studentdata s
     INNER JOIN schools sc ON s.schoolcode = sc.schoolcode
     GROUP BY sc.schoolname
     `)
 
-    res.
-    status(200).json({
+    const invoiceInfo = await db.executeSelectQuery(`SELECT COUNT(*) AS invoiceCount, SUM(total) AS total_price FROM invoices`)
+    const studentCount = await student.count();
+    const schoolsCount = await Schools.count();
+    const results = await db.executeSelectQuery(`SELECT
+    MONTHNAME(createdAt) AS month,
+    COUNT(*) AS total
+FROM
+    studentdata
+WHERE
+    createdAt >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+GROUP BY
+    MONTH(createdAt)
+ORDER BY
+    MONTH(createdAt);`)
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  const output = [];
+  for (let i = 1; i <= 6; i++) { // Start from 1 to include the current month
+      const currentMonth = (sevenMonthsAgo.getMonth() + i) % 12;
+      const monthName = monthNames[currentMonth];
+  
+      const monthData = results.find(row => row.month.toLowerCase() === monthName.toLowerCase());
+      const total = monthData ? monthData.total : 0;
+  
+      output.push({
+          name: monthName,
+          Total: total
+      });
+  }
+  
+
+
+
+    res.status(200).json({
       status: 'success',
       message: 'Schools data fetched successfully.',
-      data: schoolsTotalStudent
+      data: schoolsTotalStudent,
+      counts: { invoiceInfo: invoiceInfo[0], studentCount: studentCount, schoolsCount: schoolsCount },
+      studentsChart : output
     })
 
   } catch (error) {
     res.status(500).json({
       status: 'failed',
-      message: 'Something went wrong in fetching.'
+      message: error
     })
 
   }
