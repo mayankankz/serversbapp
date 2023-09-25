@@ -7,7 +7,8 @@ const path = require('path');
 const Invoice = require('../Models/invoiceModel');
 const db = require('../Utill/database');
 const invoiceModel = require('../Models/invoiceModel');
-const Schools = require('../Models/schoolModel')
+const Schools = require('../Models/schoolModel');
+const moment = require('moment/moment');
 
 
 const storage = new Storage({
@@ -332,6 +333,21 @@ exports.dashboardData = async (req, res) => {
 
   const currentDate = new Date();
   const sevenMonthsAgo = new Date(currentDate);
+
+  const startDate = moment(currentDate).format('YYYY-MM-DD');
+  const endDate = moment(sevenMonthsAgo.setMonth(currentDate.getMonth() - 6)).format('YYYY-MM-DD');
+  console.log(`SELECT
+  MONTHNAME(createdAt) AS month,
+  COUNT(*) AS total
+FROM
+  studentdata
+WHERE
+  createdAt >= '${endDate} 23:59:59'  and createdAt <= '${startDate} 00:00:00'
+GROUP BY
+  MONTH(createdAt)
+ORDER BY
+  MONTH(createdAt);`);
+ 
   sevenMonthsAgo.setMonth(currentDate.getMonth() - 6); // Adjusted to 6 months
   try {
     const schoolsTotalStudent = await db.executeSelectQuery(`SELECT sc.schoolname as name, COUNT(s.id) AS value
@@ -349,7 +365,7 @@ exports.dashboardData = async (req, res) => {
 FROM
     studentdata
 WHERE
-    createdAt >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+    createdAt >= '${endDate} 00:00:00' and createdAt <= '${startDate} 23:59:59'
 GROUP BY
     MONTH(createdAt)
 ORDER BY
