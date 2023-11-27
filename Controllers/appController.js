@@ -1,6 +1,7 @@
 
 const { Storage } = require('@google-cloud/storage');
 const student = require('../Models/studentsData');
+const teacher = require('../Models/techersModel');
 const Multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
@@ -193,6 +194,79 @@ exports.uploadImageAndSaveDataServer = async (req, res, next) => {
     console.error(`Failed to upload file: ${err}`);
     return res.status(500).send({ message: 'Internal server error' });
   }
+};
+
+
+// Define the route handler/controller function
+exports.uploadImageAndSaveTeachersDataServer = async (req, res, next) => {
+  const bucketName = 'sbonlineservicestest';
+  const { schoolname,name } = req.body;
+ 
+  const file = req.file;
+
+  // Check if the file buffer exists
+  if (!file || !Buffer.isBuffer(file.buffer)) {
+    return res.status(400).send({ message: 'File not found' });
+  }
+
+  const schoolFolderName = `${schoolname}/`;
+  const classFolderName = `${schoolFolderName}teachers/`;
+  const fileName = `${name}_${uuidv4()}_2023.jpg`; // Use a unique file name for each upload
+
+  try {
+    // Check if the school folder exists in the bucket
+    const [schoolFolderExists] = await storage.bucket(bucketName).file(schoolFolderName).exists();
+    if (!schoolFolderExists) {
+      // If school folder does not exist, create it
+      await storage.bucket(bucketName).file(schoolFolderName).createWriteStream().end();
+      console.log(`School folder created successfully: ${schoolFolderName}`);
+    }
+
+    // Check if the class folder exists inside the school folder
+    const [classFolderExists] = await storage.bucket(bucketName).file(classFolderName).exists();
+    if (!classFolderExists) {
+      // If class folder does not exist, create it
+      await storage.bucket(bucketName).file(classFolderName).createWriteStream().end();
+      console.log(`Class folder created successfully: ${classFolderName}`);
+    }
+
+    // Use the storage.bucket(bucketName).file() method to get a reference to the file in GCS
+    const fileRef = storage.bucket(bucketName).file(`${classFolderName}${fileName}`);
+
+    // Use the fileRef.createWriteStream() method to create a writable stream for uploading the file buffer
+    const fileStream = fileRef.createWriteStream({
+      metadata: {
+        contentType: 'image/jpeg', // Replace with the actual content type of the file
+      },
+    });
+
+    fileStream.on('error', (err) => {
+      console.error(`Failed to upload file: ${err}`);
+      return res.status(500).send({ message: 'Failed to upload photo try again.' });
+    });
+
+    fileStream.on('finish', async () => {
+      try {
+
+
+        let teacherInfo = req.body;
+
+        await teacher.create({...teacherInfo, imgUrl: fileName,});
+
+        // Return a success response with the signed URL
+        return res.status(201).send({ statud: "Success", message: "Teacher created successfully." });
+      } catch (err) {
+        console.error(`Failed to save data to database: ${err}`);
+        return res.status(500).send({ message: 'Something Went Wronge.' });
+      }
+    });
+
+    fileStream.end(file.buffer); // Write the file buffer to the file stream
+  } catch (err) {
+    console.error(`Failed to upload file: ${err}`);
+    return res.status(500).send({ message: 'Internal server error' });
+  }
+
 };
 
 

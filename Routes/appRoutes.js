@@ -36,6 +36,7 @@ const multer = Multer({
 
 
 appRouter.post('/upload', multer.single('image'),compressImage,appController.uploadImageAndSaveDataServer);
+appRouter.post('/uploadteacher', multer.single('image'),compressImage,appController.uploadImageAndSaveTeachersDataServer);
 appRouter.get('/getimages/:id',appController.getSignedUrl);
 appRouter.post('/saveinvoice' , appController.saveInvoice);
 appRouter.get('/getallinvoice' , appController.getAllInvoice);

@@ -8,6 +8,8 @@ const studentDataModel = require('./Models/studentsData');
 const schoolsModel = require('./Models/schoolModel');
 const appRouter = require('./Routes/appRoutes');
 const cors = require('cors');
+const techersDataModel = require('./Models/techersModel');
+const teachersRouter = require('./Routes/techersRoutes');
 const app = express();
 const PORT = 5000;
 
@@ -27,6 +29,7 @@ app.get('/',(req,res) => {
 app.use('/user' , userRouter )
 app.use('/auth' , authRouter)
 app.use('/app' , appRouter)
+app.use('/teacher', teachersRouter);
 
 app.use((req, res, next) => {
   res.status(404).send('404: Page not found');
@@ -36,6 +39,7 @@ app.use(userModel)
 app.use(studentDataModel);
 app.use(schoolsModel);
 app.use(invoiceModel)
+app.use(techersDataModel)
 
 sequelize.sync()
   .then(result => {
