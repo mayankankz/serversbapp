@@ -12,6 +12,9 @@ const techersDataModel = require("./Models/techersModel");
 const teachersRouter = require("./Routes/techersRoutes");
 const app = express();
 const PORT = 3002;
+var bodyParser = require("body-parser");
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
