@@ -20,7 +20,7 @@ const IdCardModel = sequelize.define(
       allowNull: false,
       required: true,
     },
-    backgroundImage: Sequelize.STRING,
+    backgroundImage: Sequelize.TEXT('long')	,
   },
   {
     timeStamp: true,

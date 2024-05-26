@@ -1,9 +1,9 @@
 let mysql = require("mysql");
 
 let dbConfig = {
-  host: "myassuredness.com",
-  user: "shivam",
-  password: "Nivyam@123",
+  host: "localhost",
+  user: "root",
+  password: "",
   port: 3306,
   multipleStatements: true,
 };

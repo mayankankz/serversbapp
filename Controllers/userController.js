@@ -540,3 +540,48 @@ exports.deleteUser = async (req, res, next) => {
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+
+
+exports.getSignedUrlsForStudents = async (req, res, next) => {
+  const bucketName = 'sbonlineservicestest';
+
+  const options = {
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + 3600000, 
+  };
+
+  try {
+    const students = await student.findAll();
+    const storage = new Storage({
+      projectId: 'silken-mile-383309',
+      keyFilename: path.join(__dirname, '../silken-mile-383309-49640fd5a454.json'),
+    });
+    const studentsWithSignedUrls = await Promise.all(students.map(async (student) => {
+      const objectName = `${student.schoolname}/${student.class}/${student.imgUrl}`;
+      try {
+        const file = storage.bucket(bucketName).file(objectName);
+        const [signedUrl] = await file.getSignedUrl(options);
+        return {
+          ...student.toJSON(),
+          img: signedUrl,
+        };
+      } catch (error) {
+        console.error(`Error generating signed URL for ${objectName}:`, error);
+        return {
+          ...student.toJSON(),
+          img: null,
+        };
+      }
+    }));
+
+    return res.status(200).json({
+      status: 'success',
+      students : studentsWithSignedUrls
+    })
+  } catch (error) {
+    console.error('Error retrieving students:', error);
+    return res.status(500).json({ error: 'Error retrieving students.' });
+  }
+};
