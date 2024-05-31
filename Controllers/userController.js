@@ -545,7 +545,7 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.getSignedUrlsForStudents = async (req, res, next) => {
   const bucketName = 'sbonlineservicestest';
-
+  const {schoolCode,className} = req.params;
   const options = {
     version: 'v4',
     action: 'read',
@@ -553,7 +553,15 @@ exports.getSignedUrlsForStudents = async (req, res, next) => {
   };
 
   try {
-    const students = await student.findAll();
+    const students = await student.findAll({where: {
+      schoolcode : schoolCode,
+      class:className
+    }});
+
+    const colums = await User.findAll({
+      where: {schoolcode : schoolCode},
+      attributes: ['validationoptions']
+    })
     const storage = new Storage({
       projectId: 'silken-mile-383309',
       keyFilename: path.join(__dirname, '../silken-mile-383309-49640fd5a454.json'),
@@ -578,7 +586,8 @@ exports.getSignedUrlsForStudents = async (req, res, next) => {
 
     return res.status(200).json({
       status: 'success',
-      students : studentsWithSignedUrls
+      students : studentsWithSignedUrls,
+      colums : colums
     })
   } catch (error) {
     console.error('Error retrieving students:', error);

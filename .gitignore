@@ -91,7 +91,7 @@ out
 .nuxt
 dist
 .config.json
-Utill
+Utill/
 
 # Gatsby files
 .cache/

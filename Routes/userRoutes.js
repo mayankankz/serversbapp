@@ -25,6 +25,6 @@ userRouter.get('/downloadphotos' , user.downloadphotos)
 userRouter.delete('/deleteschool/:id', user.deleteSchool);
 userRouter.delete('/deleteinvoice/:id', user.deleteInvoice);
 userRouter.delete('/deleteuser/:id', user.deleteUser);
-userRouter.get('/getallstudentsdatawithimages/:schoolCode',user.getSignedUrlsForStudents )
+userRouter.get('/getallstudentsdatawithimages/:schoolCode/:className',user.getSignedUrlsForStudents )
 
 module.exports =  userRouter;
