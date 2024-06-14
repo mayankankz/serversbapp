@@ -13,6 +13,9 @@ const teachersRouter = require("./Routes/techersRoutes");
 const app = express();
 const PORT = 5000;
 var bodyParser = require("body-parser");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs")
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
@@ -25,7 +28,35 @@ app.get("/", (req, res) => {
     massage: "success",
   });
 });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/assets');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
 
+const upload = multer({ storage });
+app.use('/images', express.static(path.join(__dirname, 'public/assets')));
+
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  res.json({ filePath: `http://localhost:${PORT}/images/${req.file.filename}` });
+});
+
+app.get('/api/images', (req, res) => {
+  const imageDir = path.join(__dirname, 'public/assets');
+  fs.readdir(imageDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to retrieve images' });
+    }
+    const imagePaths = files.map(file => `http://localhost:${PORT}/images/${file}`);
+    res.json(imagePaths);
+  });
+});
 app.use("/user", userRouter);
 app.use("/auth", authRouter);
 app.use("/app", appRouter);
