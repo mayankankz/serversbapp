@@ -20,6 +20,16 @@ const IdCardModel = sequelize.define(
       allowNull: false,
       required: true,
     },
+    styles:{
+      type: Sequelize.JSON,
+      allowNull: false,
+      required: true,
+    },
+    name:{
+      type: Sequelize.STRING,
+      allowNull: false,
+      required: true,
+    },
     backgroundImage: Sequelize.TEXT('long')	,
   },
   {

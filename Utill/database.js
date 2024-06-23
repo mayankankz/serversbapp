@@ -2,6 +2,7 @@ let mysql = require("mysql");
 
 let dbConfig = {
   host: "localhost",
+  database: "sbapp",
   user: "root",
   password: "",
   port: 3306,

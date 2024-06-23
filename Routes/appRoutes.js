@@ -9,6 +9,7 @@ const sharp = require("sharp");
 const {
   GetAllTemplates,
   SaveTemplate,
+  updateTemplate,
 } = require("../Controllers/idCardController");
 
 // Middleware to compress the image before uploading
@@ -52,5 +53,6 @@ appRouter.get("/getallinvoice", appController.getAllInvoice);
 appRouter.get("/admindashboard", appController.dashboardData);
 appRouter.get("/idcard", GetAllTemplates);
 appRouter.post("/idcard", SaveTemplate);
+appRouter.post("/updatetemplate", updateTemplate)
 
 module.exports = appRouter;

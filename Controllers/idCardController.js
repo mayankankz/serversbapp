@@ -45,12 +45,37 @@ exports.SaveTemplate = async (req, res) => {
   try {
     let templateInfo = {
       elements: JSON.stringify(req.body.elements),
+      styles: JSON.stringify(req.body.styles),
+      name:req.body.name,
       layout: req.body.layout,
       backgroundImage: req.body.backgroundImage,
     };
 
     await IdCardModel.create(templateInfo);
     res.status(200).send("Data saved successfully");
+  } catch (e) {
+    res.status(500).json({
+      status: "Error",
+      error: "Somthing Went Wrong",
+    });
+  }
+};
+
+
+exports.updateTemplate = async (req, res) => {
+  try {
+    const id = req.body.id;
+    let templateInfo = {
+      elements: JSON.stringify(req.body.elements),
+      styles: JSON.stringify(req.body.styles),
+      layout: req.body.layout,
+      backgroundImage: req.body.backgroundImage,
+    };
+    const idCard = await IdCardModel.findByPk(id);
+
+
+    await idCard.update(templateInfo);
+    res.status(200).send("Template Updated successfully");
   } catch (e) {
     res.status(500).json({
       status: "Error",
