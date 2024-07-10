@@ -9,6 +9,7 @@ const schoolsModel = require("./Models/schoolModel");
 const appRouter = require("./Routes/appRoutes");
 const cors = require("cors");
 const techersDataModel = require("./Models/techersModel");
+const idCardModel = require("./Models/idcardModel");
 const teachersRouter = require("./Routes/techersRoutes");
 const app = express();
 const PORT = 5000;
@@ -71,6 +72,7 @@ app.use(studentDataModel);
 app.use(schoolsModel);
 app.use(invoiceModel);
 app.use(techersDataModel);
+app.use(idCardModel);
 
 sequelize
   .sync()

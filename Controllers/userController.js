@@ -15,6 +15,15 @@ const path = require('path');
 const schoolsModel = require('../Models/schoolModel');
 const invoiceModel = require('../Models/invoiceModel');
 const userModel = require('../Models/userModel');
+const { log } = require('console');
+const { v4: uuidv4 } = require('uuid');
+
+
+const storage = new Storage({
+  projectId: 'silken-mile-383309',
+  keyFilename: path.join(__dirname, '../silken-mile-383309-49640fd5a454.json'),
+});
+
 
 exports.createUser = async (req, res) => {
   const { username, password, Schoolname, schoolcode, email, validationoptions } = req.body;
@@ -44,7 +53,7 @@ exports.createUser = async (req, res) => {
         service: 'gmail',
         auth: {
           user: 'mayankgirigoswami2212@gmail.com',
-          pass: 'uquzgdjctllfibup',
+          pass: 'Merikuttu@1',
         },
       });
 
@@ -282,33 +291,86 @@ exports.getStudentDataBySchoolCode = async (req, res) => {
 //     }
 //   };
 
+
 exports.updateStudentData = async (req, res) => {
-  const { id } = req.params; // Assuming the student ID is passed as a parameter
-  const updatedData = req.body;
+  const { id } = req.params;
+  const bucketName = 'sbonlineservicestest';
+  const file = req.file;
+  let fileName = "";
+  let studentData = req.body;
 
   try {
-    const studentinfo = await student.findByPk(id); // Assuming you have a model called "Student"
+    const studentinfo = await student.findByPk(id);
+    if (!studentinfo) {
+      return res.status(404).json({
+        status: 'error',
+        error: 'Student not found'
+      });
+    }
 
-    if (studentinfo) {
-      await studentinfo.update(updatedData);
+    const oldClass = studentinfo.class;
+    const newClass = studentData.class;
+
+    if (file) {
+      const schoolFolderName = `${studentData.schoolname}/`;
+      const classFolderName = `${schoolFolderName}${newClass}/`;
+      fileName = `${studentData.studentname}_${newClass}_${uuidv4()}_${studentData.session}.jpg`;
+
+      const fileRef = storage.bucket(bucketName).file(`${classFolderName}${fileName}`);
+
+      const fileStream = fileRef.createWriteStream({
+        metadata: {
+          contentType: 'image/jpeg',
+        },
+      });
+
+      fileStream.on('error', (err) => {
+        console.error(`Failed to upload file: ${err}`);
+        return res.status(500).send({ message: 'Failed to upload photo, try again.' });
+      });
+
+      fileStream.on('finish', async () => {
+        console.log('File uploaded successfully');
+        studentData.imgUrl = `${classFolderName}${fileName}`;
+
+        await studentinfo.update(studentData);
+        res.status(200).json({
+          status: 'success',
+          message: 'Student data updated successfully',
+          updatedData: studentinfo
+        });
+      });
+
+      fileStream.end(file.buffer);
+    } else {
+      if (oldClass !== newClass && studentinfo.imgUrl) {
+        const oldFilePath = `${studentData.schoolname}/${oldClass}/${studentinfo.imgUrl}`;
+        const newFilePath = `${studentData.schoolname}/${newClass}/${studentinfo.imgUrl}`;
+
+        await storage.bucket(bucketName).file(oldFilePath).move(newFilePath);
+
+        console.log('File moved successfully');
+        studentData.imgUrl = newFilePath;
+      }
+
+      await studentinfo.update(studentData);
       res.status(200).json({
         status: 'success',
         message: 'Student data updated successfully',
         updatedData: studentinfo
       });
-    } else {
-      res.status(404).json({
-        status: 'error',
-        error: 'Student not found'
-      });
     }
   } catch (error) {
+    console.error(`Error updating student data: ${error}`);
     res.status(500).json({
       status: 'error',
       error: 'Something went wrong while updating student data'
     });
   }
 };
+
+
+
 
 
 

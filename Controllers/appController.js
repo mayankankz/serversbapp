@@ -121,32 +121,26 @@ exports.uploadImageAndSaveDataServer = async (req, res, next) => {
 
   const schoolFolderName = `${schoolName}/`;
   const classFolderName = `${schoolFolderName}${className}/`;
-  const fileName = `${studentName}_${className}_${uuidv4()}_${session}.jpg`; // Use a unique file name for each upload
+  const fileName = `${studentName}_${className}_${uuidv4()}_${session}.jpg`; 
 
   try {
-    // Check if the school folder exists in the bucket
     const [schoolFolderExists] = await storage.bucket(bucketName).file(schoolFolderName).exists();
     if (!schoolFolderExists) {
-      // If school folder does not exist, create it
       await storage.bucket(bucketName).file(schoolFolderName).createWriteStream().end();
       console.log(`School folder created successfully: ${schoolFolderName}`);
     }
 
-    // Check if the class folder exists inside the school folder
     const [classFolderExists] = await storage.bucket(bucketName).file(classFolderName).exists();
     if (!classFolderExists) {
-      // If class folder does not exist, create it
       await storage.bucket(bucketName).file(classFolderName).createWriteStream().end();
       console.log(`Class folder created successfully: ${classFolderName}`);
     }
 
-    // Use the storage.bucket(bucketName).file() method to get a reference to the file in GCS
     const fileRef = storage.bucket(bucketName).file(`${classFolderName}${fileName}`);
 
-    // Use the fileRef.createWriteStream() method to create a writable stream for uploading the file buffer
     const fileStream = fileRef.createWriteStream({
       metadata: {
-        contentType: 'image/jpeg', // Replace with the actual content type of the file
+        contentType: 'image/jpeg', 
       },
     });
 

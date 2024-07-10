@@ -14,6 +14,7 @@ exports.GetAllTemplates = async (req, res, next) => {
           elements: JSON.parse(row.elements),
           backgroundImage: row.backgroundImage,
           layout: row.layout,
+          name: row.name
         }))
       );
       //   res.status(200).json(
