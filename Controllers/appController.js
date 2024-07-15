@@ -110,7 +110,7 @@ exports.uploadImageAndSaveData = async (req, res, next) => {
 exports.uploadImageAndSaveDataServer = async (req, res, next) => {
   const bucketName = 'sbonlineservicestest';
   const { schoolName, className } = req.body;
-  const { studentName, fatherName, motherName, mobileNumber, SamagraID, address, session, schoolcode, dob, aadhar, studentidno, section, housename } = req.body;
+  const { studentName, fatherName, motherName, mobileNumber, SamagraID, address, session, schoolcode, dob, aadhar, studentidno, section, housename,Bloodgroup,other1,other2,other3 } = req.body;
 
   const file = req.file;
 
@@ -169,7 +169,11 @@ exports.uploadImageAndSaveDataServer = async (req, res, next) => {
           aadhar,
           dob,
           section,
-          housename
+          housename,
+          Bloodgroup,
+          other1,
+          other2,
+          other3
 
         }
 

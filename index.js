@@ -1,6 +1,7 @@
 const express = require("express");
 const userRouter = require("./Routes/userRoutes");
 const sequelize = require("./Utill/connection");
+const classMaster = require("./Models/Classes")
 const userModel = require("./Models/userModel");
 const invoiceModel = require("./Models/invoiceModel");
 const authRouter = require("./Routes/authRoutes");
@@ -73,7 +74,7 @@ app.use(schoolsModel);
 app.use(invoiceModel);
 app.use(techersDataModel);
 app.use(idCardModel);
-
+app.use(classMaster)
 sequelize
   .sync()
   .then((result) => {

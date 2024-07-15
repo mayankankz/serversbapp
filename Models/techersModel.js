@@ -78,6 +78,38 @@ const techersDataModel = sequelize.define('terchersData', {
         type : Sequelize.STRING,
         allowNull : true,
         defaultValue: null,
+    },
+    Bloodgroup:{
+        type : Sequelize.STRING,
+        allowNull : true,
+        defaultValue: null,
+    },
+    validfrom: {
+        type : Sequelize.STRING,
+        allowNull : true,
+        defaultValue: null,
+    },
+    validTill: {
+        type : Sequelize.STRING,
+        allowNull : true,
+        defaultValue: null,
+    },
+    other1: {
+        type : Sequelize.STRING,
+        allowNull : true,
+        defaultValue: null, 
+    }
+    ,
+    other2: {
+        type : Sequelize.STRING,
+        allowNull : true,
+        defaultValue: null, 
+    }
+    ,
+    other3: {
+        type : Sequelize.STRING,
+        allowNull : true,
+        defaultValue: null, 
     }
    
 },{

@@ -15,8 +15,10 @@ const path = require('path');
 const schoolsModel = require('../Models/schoolModel');
 const invoiceModel = require('../Models/invoiceModel');
 const userModel = require('../Models/userModel');
-const { log } = require('console');
+const { log, error } = require('console');
 const { v4: uuidv4 } = require('uuid');
+const classMaster = require('../Models/Classes');
+const multer = require('multer');
 
 
 const storage = new Storage({
@@ -314,7 +316,7 @@ exports.updateStudentData = async (req, res) => {
     if (file) {
       const schoolFolderName = `${studentData.schoolname}/`;
       const classFolderName = `${schoolFolderName}${newClass}/`;
-      fileName = `${studentData.studentname}_${newClass}_${uuidv4()}_${studentData.session}.jpg`;
+      fileName = `${studentinfo.studentname}_${newClass}_${uuidv4()}_${studentinfo.session}.jpg`;
 
       const fileRef = storage.bucket(bucketName).file(`${classFolderName}${fileName}`);
 
@@ -331,7 +333,7 @@ exports.updateStudentData = async (req, res) => {
 
       fileStream.on('finish', async () => {
         console.log('File uploaded successfully');
-        studentData.imgUrl = `${classFolderName}${fileName}`;
+        studentData.imgUrl = `${fileName}`;
 
         await studentinfo.update(studentData);
         res.status(200).json({
@@ -344,13 +346,13 @@ exports.updateStudentData = async (req, res) => {
       fileStream.end(file.buffer);
     } else {
       if (oldClass !== newClass && studentinfo.imgUrl) {
-        const oldFilePath = `${studentData.schoolname}/${oldClass}/${studentinfo.imgUrl}`;
-        const newFilePath = `${studentData.schoolname}/${newClass}/${studentinfo.imgUrl}`;
+        const oldFilePath = `${studentinfo.schoolname}/${oldClass}/${studentinfo.imgUrl}`;
+        const newFilePath = `${studentinfo.schoolname}/${newClass}/${studentinfo.imgUrl}`;
 
         await storage.bucket(bucketName).file(oldFilePath).move(newFilePath);
 
         console.log('File moved successfully');
-        studentData.imgUrl = newFilePath;
+        
       }
 
       await studentinfo.update(studentData);
@@ -623,11 +625,13 @@ exports.getSignedUrlsForStudents = async (req, res, next) => {
     const colums = await User.findAll({
       where: {schoolcode : schoolCode},
       attributes: ['validationoptions']
-    })
+    });
+
     const storage = new Storage({
       projectId: 'silken-mile-383309',
       keyFilename: path.join(__dirname, '../silken-mile-383309-49640fd5a454.json'),
     });
+
     const studentsWithSignedUrls = await Promise.all(students.map(async (student) => {
       const objectName = `${student.schoolname}/${student.class}/${student.imgUrl}`;
       try {
@@ -656,3 +660,84 @@ exports.getSignedUrlsForStudents = async (req, res, next) => {
     return res.status(500).json({ error: 'Error retrieving students.' });
   }
 };
+
+
+
+exports.addClass = async (req,res) => {
+  const {classLabel,classValue} = req.body;
+  if(!classLabel || !classValue) {
+    return res.status(400).json({
+      error : 'Classname and ClassValue are required.'
+    })
+  }
+  try {
+    const addedClass = await classMaster.create({
+      classLabel:classLabel,ClassValue :classValue
+    })
+    return res.status(201).json({
+      status: 'success',
+      message : 'Class Added Successfully.',
+    })
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message : 'Error while  creating class.',
+    })
+  }
+}
+
+
+
+
+const validHeaders = [
+    'studentname',
+    'fathersname',
+    'mothersname',
+    'class',
+    'address',
+    'mobilenumber',
+    'schoolname',
+    'schoolcode',
+    'samagraid',
+    'session',
+    'imgUrl',
+    'studentidno',
+    'aadhar',
+    'dob',
+    'section',
+    'housename'
+];
+
+  exports.importDataFromXlsx = async (req, res) => {
+    try {
+        const filePath = req.file.path;
+        const workbook = XLSX.readFile(filePath);
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        const fileHeaders = rows[0];
+        const invalidHeaders = fileHeaders.filter(header => !validHeaders.includes(header));
+
+        if (invalidHeaders.length > 0) {
+            return res.status(400).send({ message: `Invalid headers: ${invalidHeaders.join(', ')}` });
+        }
+
+        const dataRows = rows.slice(1);
+        for (const row of dataRows) {
+            const studentData = {};
+            validHeaders.forEach((header, index) => {
+                if (fileHeaders.includes(header)) {
+                    studentData[header] = row[fileHeaders.indexOf(header)];
+                }
+            });
+
+            await studentDataModel.create(studentData);
+        }
+
+        res.send({ message: 'File imported successfully' });
+    } catch (error) {
+        console.error('Error importing file:', error);
+        res.status(500).send({ message: 'Error importing file' });
+    }
+}

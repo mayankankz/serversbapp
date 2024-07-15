@@ -54,5 +54,4 @@ appRouter.get("/admindashboard", appController.dashboardData);
 appRouter.get("/idcard", GetAllTemplates);
 appRouter.post("/idcard", SaveTemplate);
 appRouter.post("/updatetemplate", updateTemplate)
-
 module.exports = appRouter;
