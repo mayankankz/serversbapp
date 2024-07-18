@@ -3,7 +3,6 @@ const User = require('../Models/userModel');
 const { verifyPassward } = require('../Utill/hashVerifyPassward');
 const classMaster = require('../Models/Classes');
 const multer = require('multer');
-
 exports.userLogin = async (req, res) => {
     const { username, password } = req.body;
     console.log(username,password);

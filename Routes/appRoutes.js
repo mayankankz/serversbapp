@@ -12,15 +12,13 @@ const {
   updateTemplate,
 } = require("../Controllers/idCardController");
 
-// Middleware to compress the image before uploading
 const compressImage = (req, res, next) => {
   if (!req.file) {
     return next();
   }
 
-  // Compress the image to max 1MB size and save it back to the request object
   sharp(req.file.buffer)
-    .resize(1024, 1024) // Set your desired image dimensions here
+    .resize(1024, 1024)
     .toBuffer((err, data) => {
       if (err) {
         return next(err);
@@ -30,7 +28,6 @@ const compressImage = (req, res, next) => {
     });
 };
 
-// Multer middleware for handling file uploads
 const multer = Multer({
   storage: Multer.memoryStorage(),
 });

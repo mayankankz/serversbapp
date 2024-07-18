@@ -6,5 +6,6 @@ const teachersRouter = express.Router();
 teachersRouter.post('/teachers' ,teachers.GetAllTeachers)
 teachersRouter.get('/getteachersphotos' ,teachers.downloadteachersphotos)
 teachersRouter.patch('/updateteacherdata/:id',teachers.updateTeacherData)
+teachersRouter.get('/getalltechersdatawithimages/:schoolCode',teachers.getSignedUrlsForStudents )
 
 module.exports =  teachersRouter;

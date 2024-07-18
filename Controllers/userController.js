@@ -19,7 +19,9 @@ const { log, error } = require('console');
 const { v4: uuidv4 } = require('uuid');
 const classMaster = require('../Models/Classes');
 const multer = require('multer');
-
+const XLSX = require('xlsx');
+const studentDataModel = require('../Models/studentsData');
+const Teachers = require('../Models/techersModel');
 
 const storage = new Storage({
   projectId: 'silken-mile-383309',
@@ -705,23 +707,47 @@ const validHeaders = [
     'aadhar',
     'dob',
     'section',
-    'housename'
+    'housename',
+    'Bloodgroup',
+    'other1',
+    'other2',
+    'other3', 'email', 'empid', 'designation', 'validfrom', 'validTill'
 ];
+
 
   exports.importDataFromXlsx = async (req, res) => {
     try {
-        const filePath = req.file.path;
+      const school  =req.body.school;
+      const classValue = req.body.class  
+      
+      const user = await User.findOne({
+        where:{
+          schoolcode : school
+        }
+      })
+
+      if(!user){
+        return res.status(404).send({ message: `User not found please register this user.` });
+      }
+
+      
+
+      const filePath = req.file.path;
         const workbook = XLSX.readFile(filePath);
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
+        const schoolName = user.Schoolname;
         const fileHeaders = rows[0];
         const invalidHeaders = fileHeaders.filter(header => !validHeaders.includes(header));
-
+        const missingHeaders = JSON.parse(JSON.parse(user.validationoptions)).filter((header)=> !fileHeaders.includes(header));
         if (invalidHeaders.length > 0) {
             return res.status(400).send({ message: `Invalid headers: ${invalidHeaders.join(', ')}` });
         }
+
+        if (missingHeaders.length > 0) {
+          return res.status(400).send({ message: `Missing headers: ${missingHeaders.join(', ')}` });
+      }
 
         const dataRows = rows.slice(1);
         for (const row of dataRows) {
@@ -731,8 +757,14 @@ const validHeaders = [
                     studentData[header] = row[fileHeaders.indexOf(header)];
                 }
             });
-
-            await studentDataModel.create(studentData);
+            studentData.class = classValue;
+            studentData.schoolname = schoolName;
+            studentData.schoolcode = school;
+            if(classValue == 'Teacher'){
+              await Teachers.create(studentData)
+            }else{
+              await studentDataModel.create(studentData);
+            }
         }
 
         res.send({ message: 'File imported successfully' });

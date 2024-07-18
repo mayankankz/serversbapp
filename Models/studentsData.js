@@ -62,8 +62,8 @@ const studentDataModel = sequelize.define(
     },
     imgUrl: {
       type: Sequelize.STRING,
-      allowNull: false,
-      required: true,
+      allowNull: true,
+     
     },
     studentidno: {
       type: Sequelize.STRING,

@@ -5,6 +5,7 @@ const path = require('path');
 const archiver = require('archiver');
 const techersDataModel = require('../Models/techersModel');
 const { log } = require('console');
+const userModel = require('../Models/userModel');
 
 exports.GetAllTeachers = async (req, res, next) => {
     const { schoolcode } = req.body;
@@ -120,5 +121,59 @@ exports.updateTeacherData = async (req, res) => {
       status: 'error',
       error: 'Something went wrong while updating Teachers data.'
     });
+  }
+};
+
+exports.getSignedUrlsForStudents = async (req, res) => {
+
+  const bucketName = 'sbonlineservicestest';
+  const {schoolCode} = req.params;
+  const options = {
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + 3600000, 
+  };
+
+  try {
+    const students = await techersDataModel.findAll({where: {
+      schoolcode : schoolCode,
+    }});
+
+    const colums = await userModel.findAll({
+      where: {schoolcode : schoolCode},
+      attributes: ['validationoptions']
+    });
+
+    const storage = new Storage({
+      projectId: 'silken-mile-383309',
+      keyFilename: path.join(__dirname, '../silken-mile-383309-49640fd5a454.json'),
+    });
+
+    const studentsWithSignedUrls = await Promise.all(students.map(async (student) => {
+      const objectName = `${student.schoolname}/teachers/${student.imgUrl}`;
+      try {
+        const file = storage.bucket(bucketName).file(objectName);
+        const [signedUrl] = await file.getSignedUrl(options);
+        return {
+          ...student.toJSON(),
+          img: signedUrl,
+        };
+      } catch (error) {
+        console.error(`Error generating signed URL for ${objectName}:`, error);
+        return {
+          ...student.toJSON(),
+          img: null,
+        };
+      }
+    }));
+
+    return res.status(200).json({
+      status: 'success',
+      students : studentsWithSignedUrls,
+      colums : colums
+    })
+  } catch (error) {
+    console.error('Error retrieving students:', error);
+    return res.status(500).json({ error: 'Error retrieving students.' });
   }
 };
