@@ -194,6 +194,70 @@ exports.uploadImageAndSaveDataServer = async (req, res, next) => {
   }
 };
 
+exports.AddNewStudent = async (req, res, next) => {
+  const bucketName = 'sbonlineservicestest';
+  const { schoolName, className,studentname } = req.body;
+  
+  const file = req.file;
+
+  // Check if the file buffer exists
+  if (!file || !Buffer.isBuffer(file.buffer)) {
+    return res.status(400).send({ message: 'File not found' });
+  }
+
+  const schoolFolderName = `${schoolName}/`;
+  const classFolderName = `${schoolFolderName}${className}/`;
+  const fileName = `${studentname}_${className}_${uuidv4()}_${session}.jpg`; 
+
+  try {
+    const [schoolFolderExists] = await storage.bucket(bucketName).file(schoolFolderName).exists();
+    if (!schoolFolderExists) {
+      await storage.bucket(bucketName).file(schoolFolderName).createWriteStream().end();
+      console.log(`School folder created successfully: ${schoolFolderName}`);
+    }
+
+    const [classFolderExists] = await storage.bucket(bucketName).file(classFolderName).exists();
+    if (!classFolderExists) {
+      await storage.bucket(bucketName).file(classFolderName).createWriteStream().end();
+      console.log(`Class folder created successfully: ${classFolderName}`);
+    }
+
+    const fileRef = storage.bucket(bucketName).file(`${classFolderName}${fileName}`);
+
+    const fileStream = fileRef.createWriteStream({
+      metadata: {
+        contentType: 'image/jpeg', 
+      },
+    });
+
+    fileStream.on('error', (err) => {
+      console.error(`Failed to upload file: ${err}`);
+      return res.status(500).send({ message: 'Failed to upload photo try again.' });
+    });
+
+    fileStream.on('finish', async () => {
+      try {
+
+
+        let studentInfo = {...req.body ,imgUrl: fileName }
+
+        await student.create(studentInfo);
+
+        // Return a success response with the signed URL
+        return res.status(201).send({ statud: "Success", message: "Student created successfully." });
+      } catch (err) {
+        console.error(`Failed to save data to database: ${err}`);
+        return res.status(500).send({ message: 'Something Went Wronge.' });
+      }
+    });
+
+    fileStream.end(file.buffer); // Write the file buffer to the file stream
+  } catch (err) {
+    console.error(`Failed to upload file: ${err}`);
+    return res.status(500).send({ message: 'Internal server error' });
+  }
+};
+
 
 // Define the route handler/controller function
 exports.uploadImageAndSaveTeachersDataServer = async (req, res, next) => {

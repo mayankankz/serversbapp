@@ -38,6 +38,13 @@ appRouter.post(
   compressImage,
   appController.uploadImageAndSaveDataServer
 );
+
+appRouter.post(
+  "/addnewstudent",
+  multer.single("image"),
+  compressImage,
+  appController.AddNewStudent
+);
 appRouter.post(
   "/uploadteacher",
   multer.single("image"),
