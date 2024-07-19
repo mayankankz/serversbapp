@@ -18,11 +18,11 @@ var bodyParser = require("body-parser");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs")
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(bodyParser.json({ limit: "200mb" }));
+app.use(bodyParser.urlencoded({ limit: "200mb", extended: true }));
 
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '200mb' }));
+app.use(express.json({ limit: '200mb' }));
 app.use(cors());
 
 app.get("/", (req, res) => {
@@ -46,7 +46,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
-  res.json({ filePath: `http://localhost:${PORT}/images/${req.file.filename}` });
+  res.json({ filePath: `https://api.sbonlineservices.in/images/${req.file.filename}` });
 });
 
 app.get('/api/images', (req, res) => {
@@ -55,7 +55,7 @@ app.get('/api/images', (req, res) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to retrieve images' });
     }
-    const imagePaths = files.map(file => `http://localhost:${PORT}/images/${file}`);
+    const imagePaths = files.map(file => `https://api.sbonlineservices.in/images/${file}`);
     res.json(imagePaths);
   });
 });

@@ -609,6 +609,30 @@ exports.deleteUser = async (req, res, next) => {
 
 
 
+exports.deleteStudent = async (req, res, next) => {
+  try {
+    const Id = req.params.id;
+    
+    const student = await studentDataModel.findByPk(Id);
+    
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    await student.destroy();
+
+    return res.status(204).json({
+      status: 'Success',
+      message: 'Student deleted successfully'
+    }); 
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
 exports.getSignedUrlsForStudents = async (req, res, next) => {
   const bucketName = 'sbonlineservicestest';
   const {schoolCode,className} = req.params;

@@ -196,7 +196,7 @@ exports.uploadImageAndSaveDataServer = async (req, res, next) => {
 
 exports.AddNewStudent = async (req, res, next) => {
   const bucketName = 'sbonlineservicestest';
-  const { schoolName, className,studentname } = req.body;
+  const { schoolname, className,studentname,session } = req.body;
   
   const file = req.file;
 
@@ -205,7 +205,7 @@ exports.AddNewStudent = async (req, res, next) => {
     return res.status(400).send({ message: 'File not found' });
   }
 
-  const schoolFolderName = `${schoolName}/`;
+  const schoolFolderName = `${schoolname}/`;
   const classFolderName = `${schoolFolderName}${className}/`;
   const fileName = `${studentname}_${className}_${uuidv4()}_${session}.jpg`; 
 
