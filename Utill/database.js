@@ -4,7 +4,7 @@ let dbConfig = {
   host: "127.0.0.1",
   database: "sbapp",
   user: "root",
-  password: "Sbonline@2223",
+  password: "",
   port: 3306,
   multipleStatements: true,
 };

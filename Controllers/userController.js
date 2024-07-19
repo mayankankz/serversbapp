@@ -636,7 +636,8 @@ exports.deleteStudent = async (req, res, next) => {
 
 exports.getSignedUrlsForStudents = async (req, res, next) => {
   const bucketName = 'sbonlineservicestest';
-  const {schoolCode,className,session} = req.params;
+  const {schoolCode,className} = req.params;
+  const { session } = req.query;
   const options = {
     version: 'v4',
     action: 'read',

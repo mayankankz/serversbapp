@@ -51,6 +51,6 @@ userRouter.delete('/deleteinvoice/:id', user.deleteInvoice);
 userRouter.delete('/deleteuser/:id', user.deleteUser);
 userRouter.delete('/deletestudent/:id', user.deleteStudent);
 
-userRouter.get('/getallstudentsdatawithimages/:schoolCode/:className/:session',user.getSignedUrlsForStudents )
+userRouter.get('/getallstudentsdatawithimages/:schoolCode/:className',user.getSignedUrlsForStudents )
 userRouter.post('/addClass',user.addClass )
 module.exports =  userRouter;
