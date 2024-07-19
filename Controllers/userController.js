@@ -354,6 +354,7 @@ exports.updateStudentData = async (req, res) => {
         await storage.bucket(bucketName).file(oldFilePath).move(newFilePath);
 
         console.log('File moved successfully');
+        studentData = {...studentData , session: new Date().getFullYear()}
         
       }
 
@@ -635,7 +636,7 @@ exports.deleteStudent = async (req, res, next) => {
 
 exports.getSignedUrlsForStudents = async (req, res, next) => {
   const bucketName = 'sbonlineservicestest';
-  const {schoolCode,className} = req.params;
+  const {schoolCode,className,session} = req.params;
   const options = {
     version: 'v4',
     action: 'read',
@@ -643,10 +644,16 @@ exports.getSignedUrlsForStudents = async (req, res, next) => {
   };
 
   try {
-    const students = await student.findAll({where: {
-      schoolcode : schoolCode,
-      class:className
-    }});
+    const sessionValue = session ? session : new Date().getFullYear().toString();
+    console.log('Using session value:', sessionValue);
+
+    const students = await student.findAll({
+      where: {
+        schoolcode: schoolCode,
+        class: className.toString(),
+        session: sessionValue,
+      }
+    });
 
     const colums = await User.findAll({
       where: {schoolcode : schoolCode},
