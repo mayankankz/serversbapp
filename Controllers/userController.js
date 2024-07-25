@@ -22,6 +22,7 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const studentDataModel = require('../Models/studentsData');
 const Teachers = require('../Models/techersModel');
+const { where } = require('sequelize');
 
 const storage = new Storage({
   projectId: 'silken-mile-383309',
@@ -804,4 +805,30 @@ const validHeaders = [
         console.error('Error importing file:', error);
         res.status(500).send({ message: 'Error importing file' });
     }
+}
+
+
+exports.updateUser = async (req,res) => {
+  const { id } = req.params;
+  let userData = req.body;
+  try {
+    const user = await userModel.findOne({where: {
+      userid: id
+    }});
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        error: 'User not found'
+      });
+    }
+
+    await user.update(userData);
+    res.status(200).json({
+      status: 'success',
+      message: 'user data updated successfully',
+    });
+  } catch (error) {
+    xconsole.error('Error retrieving User:', error);
+    return res.status(500).json({ error: 'Error updating User.' });
+  }
 }

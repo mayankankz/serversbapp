@@ -53,4 +53,6 @@ userRouter.delete('/deletestudent/:id', user.deleteStudent);
 
 userRouter.get('/getallstudentsdatawithimages/:schoolCode/:className',user.getSignedUrlsForStudents )
 userRouter.post('/addClass',user.addClass )
+userRouter.patch('/updateuser/:id',user.updateUser )
+
 module.exports =  userRouter;
