@@ -35,7 +35,10 @@ const storage = multer.diskStorage({
     cb(null, 'public/assets');
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+    const originalName = path.parse(file.originalname).name;
+    const extension = path.extname(file.originalname);
+    const timestamp = Date.now();
+    cb(null, `${originalName}-${timestamp}${extension}`);
   }
 });
 
@@ -60,6 +63,21 @@ app.get('/api/images', (req, res) => {
       filePath: `https://api.sbonlineservices.in/images/${file}`
     }));
     res.json(imagePaths);
+  });
+});
+
+app.delete('/api/images/:fileName', (req, res) => {
+  const { fileName } = req.params;
+  const filePath = path.join(__dirname, 'public/assets', fileName);
+
+  fs.unlink(filePath, err => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      return res.status(500).json({ error: 'Failed to delete image' });
+    }
+    res.json({ message: 'Image deleted successfully' });
   });
 });
 app.use("/user", userRouter);
