@@ -177,3 +177,26 @@ exports.getSignedUrlsForStudents = async (req, res) => {
     return res.status(500).json({ error: 'Error retrieving students.' });
   }
 };
+
+
+exports.deleteTeacher = async (req, res, next) => {
+  try {
+    const Id = req.params.id;
+    
+    const Teacher = await techersDataModel.findByPk(Id);
+    
+    if (!Teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    await Teacher.destroy();
+
+    return res.status(204).json({
+      status: 'Success',
+      message: 'Teacher deleted successfully'
+    }); 
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};

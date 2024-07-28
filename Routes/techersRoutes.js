@@ -31,5 +31,6 @@ teachersRouter.post('/teachers' ,teachers.GetAllTeachers)
 teachersRouter.get('/getteachersphotos' ,teachers.downloadteachersphotos)
 teachersRouter.patch('/updateteacherdata/:id',multer.single("image"),teachers.updateTeacherData)
 teachersRouter.get('/getalltechersdatawithimages/:schoolCode',teachers.getSignedUrlsForStudents )
+teachersRouter.delete('/deleteteacher/:id', teachers.deleteTeacher);
 
 module.exports =  teachersRouter;
