@@ -55,7 +55,10 @@ app.get('/api/images', (req, res) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to retrieve images' });
     }
-    const imagePaths = files.map(file => `https://api.sbonlineservices.in/images/${file}`);
+    const imagePaths = files.map(file => ({
+      fileName: file,
+      filePath: `https://api.sbonlineservices.in/images/${file}`
+    }));
     res.json(imagePaths);
   });
 });
