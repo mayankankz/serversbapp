@@ -435,6 +435,12 @@ exports.downloadStudentsData = async (req, res) => {
       { header: 'Student ID No', key: 'studentidno', width: 15 },
       { header: 'Aadhar', key: 'aadhar', width: 15 },
       { header: 'DOB', key: 'dob', width: 15 },
+      {header: "Section" , key: 'section', width: 15 },
+      {header: "House Name" , key: 'housename', width: 15 },
+      {header: "Blood Group" , key: 'Bloodgroup', width: 15 },
+      {header: "Session" , key: 'session', width: 15 },
+
+
     ];
 
     // Add data rows to the worksheet
@@ -456,6 +462,64 @@ exports.downloadStudentsData = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 }
+
+
+exports.exportStudentsData = async (req, res) => {
+  const { schoolcode, session } = req.query;
+  try {
+    const students = await student.findAll({
+      where: { schoolcode: schoolcode, session: session }
+    });
+
+    // Create a new workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Students');
+
+    // Define the column headers
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Student Name', key: 'studentname', width: 20 },
+      { header: "Father's Name", key: 'fathersname', width: 20 },
+      { header: "Mother's Name", key: 'mothersname', width: 20 },
+      { header: 'Class', key: 'class', width: 10 },
+      { header: 'Address', key: 'address', width: 30 },
+      { header: 'Mobile Number', key: 'mobilenumber', width: 15 },
+      { header: 'School Name', key: 'schoolname', width: 20 },
+      { header: 'School Code', key: 'schoolcode', width: 15 },
+      { header: 'Samagra ID', key: 'samagraid', width: 15 },
+      { header: 'Session', key: 'session', width: 10 },
+      { header: 'Image URL', key: 'imgUrl', width: 30 },
+      { header: 'Student ID No', key: 'studentidno', width: 15 },
+      { header: 'Aadhar', key: 'aadhar', width: 15 },
+      { header: 'DOB', key: 'dob', width: 15 },
+      {header: "Section" , key: 'section', width: 15 },
+      {header: "House Name" , key: 'housename', width: 15 },
+      {header: "Blood Group" , key: 'Bloodgroup', width: 15 },
+      {header: "Session" , key: 'session', width: 15 },
+
+
+    ];
+
+    // Add data rows to the worksheet
+    students.forEach((student) => {
+      worksheet.addRow(student.toJSON());
+    });
+
+    // Set the response headers for file download
+    res.setHeader('Content-Disposition', 'attachment; filename="students.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+    // Stream the workbook to the response
+    await workbook.xlsx.write(res);
+
+    // End the response
+    res.end();
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+}
+
 
 
 exports.downloadphotos = async (req, res) => {
@@ -511,6 +575,68 @@ exports.downloadphotos = async (req, res) => {
   }
 };
 
+exports.exportphotos = async (req, res) => {
+  try {
+    const bucketName = 'sbonlineservicestest';
+    const { schoolcode, session } = req.query;
+
+    if (!schoolcode || !session) return res.status(404).json({ message: "not found" });
+
+    // Fetch students from the database
+    const students = await student.findAll({
+      where: {
+        schoolcode: schoolcode,
+        session: session,
+      },
+      attributes: ['imgUrl', 'class', 'schoolname'] // Adjust the attribute names if needed
+    });
+
+    // Create a new instance of the Storage client
+    const storage = new Storage({
+      projectId: 'silken-mile-383309',
+      keyFilename: path.join(__dirname, '../silken-mile-383309-49640fd5a454.json'),
+    });
+
+    // Create a reference to the bucket
+    const bucket = storage.bucket(bucketName);
+
+    // Create a new archive using the archiver library
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // Set the compression level (optional)
+    });
+
+    // Set the response headers for downloading the zip file
+    res.setHeader('Content-Disposition', 'attachment; filename="downloaded-files.zip"');
+    res.setHeader('Content-Type', 'application/zip');
+
+    // Pipe the response stream to the archive
+    archive.pipe(res);
+
+    // Process each student
+    for (const student of students) {
+      try {
+        const filePath = `${student.schoolname}/${student.class}/${student.imgUrl}`;
+        const file = bucket.file(filePath);
+        const [data] = await file.download();
+        
+        // Create a path within the zip that includes the class folder
+        const relativePath = `${student.class}/${path.basename(student.imgUrl)}`;
+        
+        // Add the file to the archive with its relative path
+        archive.append(data, { name: relativePath });
+      } catch (fileError) {
+        console.error(`Error processing file ${student.imgUrl} for student ${student.id}: ${fileError.message}`);
+        // Continue to the next student even if the current one fails
+      }
+    }
+
+    // Finalize the archive
+    await archive.finalize();
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+};
 
 exports.getAllUsers = async(req, res) => {
   try {
