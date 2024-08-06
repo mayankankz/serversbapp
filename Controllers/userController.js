@@ -376,6 +376,34 @@ exports.updateStudentData = async (req, res) => {
 };
 
 
+exports.updateStudent = async (req, res) => {
+  const { id } = req.params;
+  let studentData = req.body;
+
+  try {
+    const studentinfo = await student.findByPk(id);
+    if (!studentinfo) {
+      return res.status(404).json({
+        status: 'error',
+        error: 'Student not found'
+      });
+    }
+
+      await studentinfo.update(studentData);
+      res.status(200).json({
+        status: 'success',
+        message: 'Student data updated successfully',
+        updatedData: studentinfo
+      });
+  } catch (error) {
+    console.error(`Error updating student data: ${error}`);
+    res.status(500).json({
+      status: 'error',
+      error: 'Something went wrong while updating student data'
+    });
+  }
+};
+
 
 
 
@@ -496,6 +524,11 @@ exports.exportStudentsData = async (req, res) => {
       {header: "House Name" , key: 'housename', width: 15 },
       {header: "Blood Group" , key: 'Bloodgroup', width: 15 },
       {header: "Session" , key: 'session', width: 15 },
+      {header: "Other 1" , key: 'other1', width: 15 },
+      {header: "Other 2" , key: 'other2', width: 15 },
+      {header: "Other 3" , key: 'other3', width: 15 },
+      
+
 
 
     ];
@@ -764,7 +797,7 @@ exports.deleteStudent = async (req, res, next) => {
 exports.getSignedUrlsForStudents = async (req, res, next) => {
   const bucketName = 'sbonlineservicestest';
   const {schoolCode,className} = req.params;
-  const { session } = req.query;
+  const { session,isPrinted="all" } = req.query;
   const options = {
     version: 'v4',
     action: 'read',
@@ -774,13 +807,24 @@ exports.getSignedUrlsForStudents = async (req, res, next) => {
   try {
     const sessionValue = session ? session : new Date().getFullYear().toString();
     console.log('Using session value:', sessionValue);
-
-    const students = await student.findAll({
-      where: {
+    let cond ={};
+    if(isPrinted== "all"){
+     cond = {
         schoolcode: schoolCode,
         class: className.toString(),
         session: sessionValue,
+        
       }
+    }else{
+      cond = {
+        schoolcode: schoolCode,
+        class: className.toString(),
+        session: sessionValue,
+        isPrinted: false
+      }
+    }
+    const students = await student.findAll({
+      where: {...cond}
     });
 
     const colums = await User.findAll({

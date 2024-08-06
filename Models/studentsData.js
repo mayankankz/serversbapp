@@ -110,6 +110,10 @@ const studentDataModel = sequelize.define(
       allowNull: true,
       defaultValue: null,
     },
+    isPrinted: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    }
   },
   {
     timeStamp: true,
